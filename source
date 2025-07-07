@@ -1,0 +1,146 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Fuck You",
+   Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
+   LoadingTitle = "HRLRARAFFfawAWF",
+   LoadingSubtitle = "fuck gays",
+   ShowText = "PFGH", -- for mobile users to unhide rayfield, change if you'd like
+   Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+
+   ToggleUIKeybind = "K", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
+
+   DisableRayfieldPrompts = false,
+   DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
+
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = PFGHub, -- Create a custom folder for your hub/game
+      FileName = "Project Fuck gays"
+   },
+
+   Discord = {
+      Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
+      Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
+      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+   },
+
+   KeySystem = false, -- Set this to true to use our key system
+   KeySettings = {
+      Title = "Untitled",
+      Subtitle = "Key System",
+      Note = "No method of obtaining the key is provided", -- Use this to tell the user how to get a key
+      FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+      SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+      GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+      Key = {"Hello"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+   }
+})
+
+local Tab = Window:CreateTab("Testing", 4483362458) -- Title, Image
+
+local player = game.Players.LocalPlayer 
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local flying = false
+local speed = 10 -- default
+local direction = Vector3.zero
+local bodyGyro, bodyVelocity
+
+-- === START FLY ===
+function startFlying()
+	if flying then return end
+	flying = true
+
+	bodyGyro = Instance.new("BodyGyro")
+	bodyGyro.MaxTorque = Vector3.new(400000, 400000, 400000)
+	bodyGyro.P = 100000
+	bodyGyro.CFrame = humanoidRootPart.CFrame
+	bodyGyro.Parent = humanoidRootPart
+
+	bodyVelocity = Instance.new("BodyVelocity")
+	bodyVelocity.Velocity = Vector3.zero
+	bodyVelocity.MaxForce = Vector3.new(400000, 400000, 400000)
+	bodyVelocity.P = 100000
+	bodyVelocity.Parent = humanoidRootPart
+
+	RunService:BindToRenderStep("FlyControl", Enum.RenderPriority.Input.Value, function()
+		bodyGyro.CFrame = workspace.CurrentCamera.CFrame
+		bodyVelocity.Velocity =
+			workspace.CurrentCamera.CFrame.LookVector * direction.Z * speed +
+			workspace.CurrentCamera.CFrame.RightVector * direction.X * speed +
+			workspace.CurrentCamera.CFrame.UpVector * direction.Y * speed
+	end)
+end
+
+-- === STOP FLY ===
+function stopFlying()
+	if not flying then return end
+	flying = false
+	RunService:UnbindFromRenderStep("FlyControl")
+	if bodyGyro then bodyGyro:Destroy() end
+	if bodyVelocity then bodyVelocity:Destroy() end
+end
+
+-- === RAYFIELD TOGGLE ===
+local Toggle = Tab:CreateToggle({
+	Name = "Fly Toggle",
+	CurrentValue = false,
+	Flag = "FlyToggle",
+	Callback = function(Value)
+		if Value then
+			startFlying()
+		else
+			stopFlying()
+		end
+	end,
+})
+
+-- === RAYFIELD SLIDER ===
+local Slider = Tab:CreateSlider({
+	Name = "Fly Speed",
+	Range = {0, 500},
+	Increment = 1,
+	Suffix = "Speed",
+	CurrentValue = speed,
+	Flag = "SpeedSlider",
+	Callback = function(Value)
+		speed = Value
+	end,
+})
+
+-- === INPUT CONTROLS ===
+UIS.InputBegan:Connect(function(input, gpe)
+	if gpe or not flying then return end
+
+	if input.KeyCode == Enum.KeyCode.W then
+		direction = Vector3.new(direction.X, direction.Y, 1)
+	elseif input.KeyCode == Enum.KeyCode.S then
+		direction = Vector3.new(direction.X, direction.Y, -1)
+	elseif input.KeyCode == Enum.KeyCode.A then
+		direction = Vector3.new(-1, direction.Y, direction.Z)
+	elseif input.KeyCode == Enum.KeyCode.D then
+		direction = Vector3.new(1, direction.Y, direction.Z)
+	elseif input.KeyCode == Enum.KeyCode.Space then
+		direction = Vector3.new(direction.X, 1, direction.Z)
+	elseif input.KeyCode == Enum.KeyCode.LeftControl then
+		direction = Vector3.new(direction.X, -1, direction.Z)
+	end
+end)
+
+UIS.InputEnded:Connect(function(input)
+	if not flying then return end
+
+	if input.KeyCode == Enum.KeyCode.W or input.KeyCode == Enum.KeyCode.S then
+		direction = Vector3.new(direction.X, direction.Y, 0)
+	elseif input.KeyCode == Enum.KeyCode.A or input.KeyCode == Enum.KeyCode.D then
+		direction = Vector3.new(0, direction.Y, direction.Z)
+	elseif input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.LeftControl then
+		direction = Vector3.new(direction.X, 0, direction.Z)
+	end
+end)
+]]
